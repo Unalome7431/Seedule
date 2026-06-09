@@ -14,8 +14,8 @@ Seedule adalah aplikasi sistem pakar berbasis web yang dirancang untuk membantu 
 
 ## 🛠️ Tech Stack
 * **Backend & Mesin Inferensi:** PHP (Laravel).
-* **Frontend:** HTML, CSS, dan Bootstrap.
-* **Database:** MySQL (menyimpan basis pengetahuan, aturan CF, dan riwayat konsultasi).
+* **Frontend:** React TS (Vite).
+* **Database:** PostgreSQL (menyimpan basis pengetahuan, aturan CF, dan riwayat konsultasi).
 
 ## ⚙️ Alur Kerja Sistem
 1. **Input:** Pengguna memasukkan parameter kondisi lahan awal dan memilih minimal 2 daftar bibit yang tersedia.
