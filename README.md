@@ -31,3 +31,4 @@ Seedule adalah aplikasi sistem pakar berbasis web yang dirancang untuk membantu 
 | L0124080 | Velengio Deriksen Charles |
 | L0124084 | Ahmad Aditya Nugraha |
 | L0124087 | Andika Bahari Suryanegara |
+
