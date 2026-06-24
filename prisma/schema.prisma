@@ -7,8 +7,122 @@ generator client {
 }
 
 model User {
-  id        String   @id @default(uuid())
-  email     String   @unique
-  name      String?
-  createdAt DateTime @default(now())
+  id                String              @id @default(uuid())
+  email             String              @unique
+  name              String?
+  password          String?
+  createdAt         DateTime            @default(now())
+  riwayatKonsultasi RiwayatKonsultasi[]
+
+  @@map("users")
+}
+
+enum StatusValidasiTanaman {
+  tervalidasi_pakar
+  estimasi_famili
+  literatur
+}
+
+enum StatusKesesuaianPakar {
+  sesuai
+  sebagian_sesuai
+  tidak_sesuai
+}
+
+enum SumberRuleRotasi {
+  pakar
+  generalisasi_famili
+  literatur
+}
+
+model Kriteria {
+  kode_kriteria String         @id @map("kode_kriteria")
+  deskripsi     String         @map("deskripsi")
+  bobot_cf      Float          @map("bobot_cf")
+  ruleKriteria  RuleKriteria[]
+
+  @@map("kriteria")
+}
+
+model Tanaman {
+  kode_tanaman    String                @id @map("kode_tanaman")
+  nama_tanaman    String                @map("nama_tanaman")
+  famili_botani   String                @map("famili_botani")
+  kategori        String                @map("kategori")
+  status_validasi StatusValidasiTanaman @map("status_validasi")
+  cf_akhir        Float                 @map("cf_akhir")
+  ruleKriteria    RuleKriteria[]
+  validasiPakar   ValidasiPakar[]
+  rulesSebelum    RuleRotasi[]          @relation("TanamanSebelum")
+  rulesSesudah    RuleRotasi[]          @relation("TanamanSesudah")
+
+  @@map("tanaman")
+}
+
+model RuleKriteria {
+  id            Int      @id @default(autoincrement()) @map("id")
+  kode_tanaman  String   @map("kode_tanaman")
+  kode_kriteria String   @map("kode_kriteria")
+  tanaman       Tanaman  @relation(fields: [kode_tanaman], references: [kode_tanaman], onDelete: Cascade)
+  kriteria      Kriteria @relation(fields: [kode_kriteria], references: [kode_kriteria], onDelete: Cascade)
+
+  @@unique([kode_tanaman, kode_kriteria])
+  @@map("rule_kriteria")
+}
+
+model ValidasiPakar {
+  id                     Int                   @id @default(autoincrement()) @map("id")
+  kode_tanaman           String                @map("kode_tanaman")
+  nama_pakar             String                @map("nama_pakar")
+  status_kesesuaian      StatusKesesuaianPakar @map("status_kesesuaian")
+  urutan_prioritas_pakar String                @map("urutan_prioritas_pakar")
+  catatan_revisi         String?               @map("catatan_revisi") @db.Text
+  tanaman                Tanaman               @relation(fields: [kode_tanaman], references: [kode_tanaman], onDelete: Cascade)
+
+  @@map("validasi_pakar")
+}
+
+model RuleRotasi {
+  id                   Int              @id @default(autoincrement()) @map("id")
+  kode_tanaman_sebelum String           @map("kode_tanaman_sebelum")
+  kode_tanaman_sesudah String?          @map("kode_tanaman_sesudah")
+  famili_target        String?          @map("famili_target")
+  alasan_agronomis     String           @map("alasan_agronomis") @db.Text
+  sumber               SumberRuleRotasi @map("sumber")
+  tanamanSebelum       Tanaman          @relation("TanamanSebelum", fields: [kode_tanaman_sebelum], references: [kode_tanaman], onDelete: Cascade)
+  tanamanSesudah       Tanaman?         @relation("TanamanSesudah", fields: [kode_tanaman_sesudah], references: [kode_tanaman], onDelete: Cascade)
+
+  @@map("rule_rotasi")
+}
+
+model ConstraintRotasi {
+  id             Int    @id @default(autoincrement()) @map("id")
+  famili_a       String @map("famili_a")
+  famili_b       String @map("famili_b")
+  jenis_larangan String @map("jenis_larangan")
+  alasan         String @map("alasan") @db.Text
+
+  @@map("constraint_rotasi")
+}
+
+model JedaRotasi {
+  id                 Int     @id @default(autoincrement()) @map("id")
+  kategori_tanaman   String  @map("kategori_tanaman")
+  jeda_minimum_hari  Int     @map("jeda_minimum_hari")
+  jeda_maksimum_hari Int     @map("jeda_maksimum_hari")
+  catatan_aktivitas  String? @map("catatan_aktivitas") @db.Text
+
+  @@map("jeda_rotasi")
+}
+
+model RiwayatKonsultasi {
+  id                  Int      @id @default(autoincrement()) @map("id")
+  user_id             String?  @map("user_id")
+  timestamp           DateTime @default(now()) @map("timestamp")
+  input_kondisi_lahan Json     @map("input_kondisi_lahan")
+  tanaman_sebelumnya  String?  @map("tanaman_sebelumnya")
+  hasil_rekomendasi   Json     @map("hasil_rekomendasi")
+  user                User?    @relation(fields: [user_id], references: [id], onDelete: SetNull)
+
+  @@map("riwayat_konsultasi")
 }
