@@ -14,6 +14,7 @@ export const Mode1Form: React.FC<Mode1FormProps> = ({
   result,
 }) => {
   // Input states
+  const [namaKonsultasi, setNamaKonsultasi] = useState("");
   const [suhu, setSuhu] = useState("");
   const [air, setAir] = useState("");
   const [kedalaman, setKedalaman] = useState("");
@@ -22,11 +23,15 @@ export const Mode1Form: React.FC<Mode1FormProps> = ({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (!namaKonsultasi.trim()) {
+      alert("Harap isi nama konsultasi!");
+      return;
+    }
     if (!suhu || !air || !kedalaman || !kejenuhan || !ph) {
       alert("Harap isi semua kriteria lahan!");
       return;
     }
-    onSubmit({ suhu, air, kedalaman, kejenuhan, ph });
+    onSubmit({ namaKonsultasi: namaKonsultasi.trim(), suhu, air, kedalaman, kejenuhan, ph });
   };
 
   // Mock result for UI skeleton if none provided
@@ -74,7 +79,7 @@ export const Mode1Form: React.FC<Mode1FormProps> = ({
           Kesesuaian Lahan Hortikultura
         </h2>
         <p className="text-sm text-sage-600 mt-2 leading-relaxed font-sans">
-          Masukkan karakteristik lahan Anda di bawah ini. Sistem pakar akan menggunakan penarikan kesimpulan **Forward Chaining** dan menghitung kecocokan tanaman menggunakan **Certainty Factor (CF)** gabungan.
+          Masukkan karakteristik lahan Anda di bawah ini. Sistem pakar akan menggunakan penarikan kesimpulan **Forward Chaining** untuk menghitung kecocokan tanaman.
         </p>
       </div>
 
@@ -82,6 +87,22 @@ export const Mode1Form: React.FC<Mode1FormProps> = ({
         {/* Form Panel */}
         <form onSubmit={handleSubmit} className="lg:col-span-5 bg-white p-6 rounded-2xl border border-sage-200 shadow-sm space-y-4">
           <h3 className="text-sm font-bold text-sage-800 uppercase tracking-wider mb-2">Kriteria Lahan</h3>
+
+          {/* Conversation Name Input */}
+          <div className="space-y-1.5">
+            <label className="text-xs font-semibold text-sage-700 flex items-center gap-1.5">
+              <FileText className="w-3.5 h-3.5 text-sage-400" />
+              Nama Konsultasi
+            </label>
+            <input
+              type="text"
+              value={namaKonsultasi}
+              onChange={(e) => setNamaKonsultasi(e.target.value)}
+              placeholder="cth. Lahan Utara Sektor A"
+              className="w-full text-sm rounded-xl border border-sage-200 bg-sage-50/30 p-3 text-sage-800 focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500 transition-all duration-200"
+              required
+            />
+          </div>
 
           {/* Temperature Input */}
           <div className="space-y-1.5">
@@ -257,22 +278,6 @@ export const Mode1Form: React.FC<Mode1FormProps> = ({
 
                         {/* Badges */}
                         <div className="flex flex-wrap gap-1.5 items-center">
-                          <span
-                            className={cn(
-                              "text-[10px] px-2 py-0.5 rounded-full font-bold uppercase",
-                              isPakar
-                                ? "bg-green-100 text-green-700"
-                                : isEstimasi
-                                ? "bg-amber-100 text-amber-700"
-                                : "bg-slate-100 text-slate-700"
-                            )}
-                          >
-                            {isPakar
-                              ? "Tervalidasi Pakar"
-                              : isEstimasi
-                              ? "Estimasi Famili"
-                              : "Literatur"}
-                          </span>
                           <span className="text-[10px] bg-sage-100 text-sage-600 px-2 py-0.5 rounded-full font-medium">
                             {crop.kategori}
                           </span>
@@ -283,13 +288,7 @@ export const Mode1Form: React.FC<Mode1FormProps> = ({
                         </p>
                       </div>
 
-                      {/* Certainty Score */}
-                      <div className="flex flex-col items-end justify-center self-center pl-2 border-l border-sage-100">
-                        <span className="text-xs font-semibold text-sage-400 tracking-wider">CF</span>
-                        <span className="text-xl font-extrabold text-primary-600 tracking-tight">
-                          {crop.cf}%
-                        </span>
-                      </div>
+
                     </div>
                   </div>
                 );

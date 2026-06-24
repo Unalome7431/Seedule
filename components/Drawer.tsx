@@ -1,5 +1,5 @@
 import React from "react";
-import { Sprout, RefreshCw, BookOpen, X } from "lucide-react";
+import { Sprout, RefreshCw, BookOpen, X, LogOut, User as UserIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import HistoryList, { HistoryItem } from "./HistoryList";
 
@@ -11,6 +11,9 @@ interface DrawerProps {
   historyItems: HistoryItem[];
   activeHistoryId?: string;
   onSelectHistory: (item: HistoryItem) => void;
+  userSession: { name?: string | null; email?: string | null } | null;
+  onLoginClick: () => void;
+  onLogoutClick: () => void;
 }
 
 export const Drawer: React.FC<DrawerProps> = ({
@@ -21,6 +24,9 @@ export const Drawer: React.FC<DrawerProps> = ({
   historyItems,
   activeHistoryId,
   onSelectHistory,
+  userSession,
+  onLoginClick,
+  onLogoutClick,
 }) => {
   const menuItems = [
     {
@@ -129,9 +135,50 @@ export const Drawer: React.FC<DrawerProps> = ({
           </div>
         </div>
 
-        {/* Drawer Footer */}
-        <div className="p-4 border-t border-sage-100 bg-sage-50/50 text-center">
-          <p className="text-[10px] text-sage-400 font-medium">Seedule v1.0.0 — AgriTech System</p>
+        {/* Drawer Footer / Auth section */}
+        <div className="p-4 border-t border-sage-200 bg-sage-50/50 space-y-3">
+          {userSession ? (
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex items-center gap-2.5 min-w-0">
+                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary-600 text-white font-bold text-xs flex-shrink-0">
+                  {userSession.name ? userSession.name.charAt(0).toUpperCase() : "U"}
+                </div>
+                <div className="min-w-0">
+                  <p className="text-xs font-bold text-sage-800 truncate leading-tight">
+                    {userSession.name}
+                  </p>
+                  <p className="text-[10px] text-sage-500 truncate mt-0.5">
+                    {userSession.email}
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => {
+                  onLogoutClick();
+                  onClose();
+                }}
+                className="p-1.5 text-sage-400 hover:text-red-650 rounded-lg hover:bg-red-50 transition-colors focus:outline-none cursor-pointer"
+                title="Logout"
+              >
+                <LogOut className="w-4 h-4" />
+              </button>
+            </div>
+          ) : (
+            <button
+              onClick={() => {
+                onLoginClick();
+                onClose();
+              }}
+              className="w-full flex items-center justify-center gap-2 rounded-xl bg-primary-600 text-white hover:bg-primary-700 font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 py-2.5 text-xs cursor-pointer shadow-sm"
+            >
+              <UserIcon className="w-4 h-4" />
+              <span>Login / Daftar Akun</span>
+            </button>
+          )}
+
+          <div className="text-center pt-1">
+            <p className="text-[9px] text-sage-400 font-medium">Seedule v1.0.0 — AgriTech System</p>
+          </div>
         </div>
       </div>
     </div>
