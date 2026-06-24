@@ -85,13 +85,10 @@ export const Mode3Catalog: React.FC<Mode3CatalogProps> = ({
                 className="bg-white p-5 rounded-2xl border border-sage-200 hover:border-primary-300 hover:shadow-md transition-all duration-300 text-left flex flex-col justify-between group cursor-pointer"
               >
                 <div className="space-y-3 w-full">
-                  {/* Top: Code & CF */}
+                  {/* Top: Code */}
                   <div className="flex justify-between items-center w-full">
                     <span className="text-[10px] font-bold bg-sage-100 text-sage-600 px-2.5 py-1 rounded-lg uppercase tracking-wider">
                       {crop.kode_tanaman}
-                    </span>
-                    <span className="text-xs font-extrabold text-primary-600 bg-primary-50 px-2 py-0.5 rounded-md">
-                      CF {crop.cf_akhir}%
                     </span>
                   </div>
 
@@ -107,18 +104,7 @@ export const Mode3Catalog: React.FC<Mode3CatalogProps> = ({
 
                   {/* Badges */}
                   <div className="flex gap-1.5 items-center flex-wrap">
-                    <span
-                      className={cn(
-                        "text-[9px] px-2 py-0.5 rounded-full font-bold uppercase",
-                        isPakar
-                          ? "bg-green-100 text-green-700"
-                          : isEstimasi
-                          ? "bg-amber-100 text-amber-700"
-                          : "bg-slate-100 text-slate-700"
-                      )}
-                    >
-                      {isPakar ? "Tervalidasi" : isEstimasi ? "Estimasi" : "Literatur"}
-                    </span>
+
                     <span className="text-[9px] bg-sage-50 text-sage-500 px-2 py-0.5 rounded-full font-medium">
                       {crop.kategori}
                     </span>
@@ -197,47 +183,7 @@ export const Mode3Catalog: React.FC<Mode3CatalogProps> = ({
                 </div>
               </div>
 
-              {/* Expert Validation Reviews if available */}
-              <div className="space-y-2">
-                <h4 className="text-xs font-bold text-sage-700 uppercase tracking-wider">Status Validasi Lapangan</h4>
-                <div className="p-4 rounded-xl border border-sage-200 bg-white space-y-3">
-                  <div className="flex justify-between items-center">
-                    <span className="text-xs font-semibold text-sage-600">
-                      Tingkat Kepercayaan:
-                    </span>
-                    <span
-                      className={cn(
-                        "text-[10px] px-2.5 py-0.5 rounded-full font-bold uppercase",
-                        selectedCrop.status_validasi === "tervalidasi_pakar"
-                          ? "bg-green-100 text-green-700"
-                          : selectedCrop.status_validasi === "estimasi_famili"
-                          ? "bg-amber-100 text-amber-700"
-                          : "bg-slate-100 text-slate-700"
-                      )}
-                    >
-                      {selectedCrop.status_validasi === "tervalidasi_pakar"
-                        ? "Tervalidasi Pakar"
-                        : selectedCrop.status_validasi === "estimasi_famili"
-                        ? "Estimasi Famili"
-                        : "Literatur"}
-                    </span>
-                  </div>
 
-                  {selectedCrop.revisiCatatan ? (
-                    <div className="p-3 bg-red-50/50 border border-red-200 rounded-lg text-xs text-red-700">
-                      <strong>Revisi Prioritas Pakar:</strong> {selectedCrop.revisiCatatan}
-                    </div>
-                  ) : selectedCrop.status_validasi === "tervalidasi_pakar" ? (
-                    <div className="p-3 bg-green-50/50 border border-green-200 rounded-lg text-xs text-green-700">
-                      <strong>Ulasan Pakar:</strong> Lahan optimal sudah sesuai dengan rekomendasi sistem, urutan prioritas valid.
-                    </div>
-                  ) : (
-                    <div className="p-3 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-600">
-                      <strong>Catatan Literatur:</strong> Belum diwawancarai langsung. Data diturunkan dari literatur penelitian agronomis.
-                    </div>
-                  )}
-                </div>
-              </div>
 
               {/* Rotation Recommendations */}
               <div className="space-y-2">

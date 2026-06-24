@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { RefreshCw, ArrowRight, AlertTriangle, Info, Calendar, Sprout, ShieldAlert, CheckCircle } from "lucide-react";
+import { RefreshCw, ArrowRight, AlertTriangle, Info, Calendar, Sprout, ShieldAlert, CheckCircle, Plus, Trash2, FileText } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface Mode2FormProps {
@@ -15,7 +15,9 @@ export const Mode2Form: React.FC<Mode2FormProps> = ({
   isLoading = false,
   result,
 }) => {
-  const [tanamanSebelum, setTanamanSebelum] = useState("");
+  const [namaKonsultasi, setNamaKonsultasi] = useState("");
+  const [selectedCrops, setSelectedCrops] = useState<string[]>([]);
+  const [currentCrop, setCurrentCrop] = useState("");
   const [cycles, setCycles] = useState("1");
   const [showLahan, setShowLahan] = useState(false);
 
@@ -26,14 +28,33 @@ export const Mode2Form: React.FC<Mode2FormProps> = ({
   const [kejenuhan, setKejenuhan] = useState("");
   const [ph, setPh] = useState("");
 
+  const handleAddCrop = () => {
+    if (!currentCrop) return;
+    if (selectedCrops.includes(currentCrop)) {
+      alert("Tanaman ini sudah ditambahkan ke urutan rotasi!");
+      return;
+    }
+    setSelectedCrops([...selectedCrops, currentCrop]);
+    setCurrentCrop("");
+  };
+
+  const handleRemoveCrop = (kode: string) => {
+    setSelectedCrops(selectedCrops.filter((c) => c !== kode));
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!tanamanSebelum) {
-      alert("Harap pilih tanaman sebelum!");
+    if (!namaKonsultasi.trim()) {
+      alert("Harap isi nama konsultasi!");
+      return;
+    }
+    if (selectedCrops.length === 0) {
+      alert("Harap tambahkan minimal satu tanaman sebelum!");
       return;
     }
     onSubmit({
-      tanamanSebelum,
+      namaKonsultasi: namaKonsultasi.trim(),
+      tanamanSebelumList: selectedCrops,
       cycles: parseInt(cycles),
       lahan: showLahan ? { suhu, air, kedalaman, kejenuhan, ph } : null,
     });
@@ -70,7 +91,7 @@ export const Mode2Form: React.FC<Mode2FormProps> = ({
           Rencana Rotasi Tanam & Mitigasi Penyakit
         </h2>
         <p className="text-sm text-sage-600 mt-2 leading-relaxed font-sans">
-          Pilihlah komoditas yang baru saja Anda panen. Sistem akan mencocokkan dengan **Aturan Rotasi Empiris Pakar** atau inferensi generalisasi famili untuk merancang rotasi terbaik dan memberi peringatan otomatis jika mendeteksi kombinasi berisiko.
+          Tambahkan komoditas tanaman yang baru saja dipanen atau dalam urutan rotasi lahan Anda. Sistem akan mendeteksi kecocokan dan risiko tanaman secara berurutan.
         </p>
       </div>
 
@@ -79,24 +100,85 @@ export const Mode2Form: React.FC<Mode2FormProps> = ({
         <form onSubmit={handleSubmit} className="lg:col-span-5 bg-white p-6 rounded-2xl border border-sage-200 shadow-sm space-y-4">
           <h3 className="text-sm font-bold text-sage-800 uppercase tracking-wider mb-2">Parameter Rotasi</h3>
 
-          {/* Plant Before selection */}
+          {/* Conversation Name Input */}
           <div className="space-y-1.5">
-            <label className="text-xs font-semibold text-sage-700">
-              Tanaman yang Baru / Akan Dipanen
+            <label className="text-xs font-semibold text-sage-700 flex items-center gap-1.5">
+              <FileText className="w-3.5 h-3.5 text-sage-400" />
+              Nama Rencana Rotasi
             </label>
-            <select
-              value={tanamanSebelum}
-              onChange={(e) => setTanamanSebelum(e.target.value)}
+            <input
+              type="text"
+              value={namaKonsultasi}
+              onChange={(e) => setNamaKonsultasi(e.target.value)}
+              placeholder="cth. Rotasi Kebun Sayur Barat"
               className="w-full text-sm rounded-xl border border-sage-200 bg-sage-50/30 p-3 text-sage-800 focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500 transition-all duration-200"
               required
-            >
-              <option value="">Pilih Tanaman...</option>
-              {cropsList.map((crop) => (
-                <option key={crop.kode_tanaman} value={crop.kode_tanaman}>
-                  {crop.kode_tanaman} - {crop.nama_tanaman} ({crop.famili_botani})
-                </option>
-              ))}
-            </select>
+            />
+          </div>
+
+          {/* Plant Before selection */}
+          <div className="space-y-3">
+            <div className="space-y-1.5">
+              <label className="text-xs font-semibold text-sage-700">
+                Tanaman Sebelumnya / Histori Tanam (Berurutan)
+              </label>
+              <div className="flex gap-2 min-w-0">
+                <select
+                  value={currentCrop}
+                  onChange={(e) => setCurrentCrop(e.target.value)}
+                  className="flex-1 min-w-0 text-sm rounded-xl border border-sage-200 bg-sage-50/30 p-3 text-sage-800 focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500 transition-all duration-200"
+                >
+                  <option value="">Pilih Tanaman...</option>
+                  {cropsList.map((crop) => (
+                    <option key={crop.kode_tanaman} value={crop.kode_tanaman}>
+                      {crop.kode_tanaman} - {crop.nama_tanaman.split(",")[0]} ({crop.famili_botani.split("/")[0].trim()})
+                    </option>
+                  ))}
+                </select>
+                <button
+                  type="button"
+                  onClick={handleAddCrop}
+                  className="h-11 w-11 flex-shrink-0 bg-primary-600 hover:bg-primary-700 text-white rounded-xl font-bold flex items-center justify-center cursor-pointer transition-colors shadow-sm focus:outline-none"
+                  title="Tambah Tanaman"
+                >
+                  <Plus className="w-5 h-5" />
+                </button>
+              </div>
+            </div>
+
+            {/* Selected Plants Tags List */}
+            <div className="space-y-2">
+              <span className="text-[10px] font-bold text-sage-400 uppercase tracking-wider block">Daftar Kode Tanaman Terpilih:</span>
+              {selectedCrops.length === 0 ? (
+                <div className="p-3 text-center border border-dashed border-sage-200 rounded-xl bg-sage-50/20 text-xs text-sage-400">
+                  Belum ada tanaman terpilih. Tambahkan tanaman di atas.
+                </div>
+              ) : (
+                <div className="flex flex-wrap gap-2 pt-1">
+                  {selectedCrops.map((kode) => {
+                    const cropObj = cropsList.find((c) => c.kode_tanaman === kode);
+                    const displayName = cropObj ? `${kode} - ${cropObj.nama_tanaman.split(",")[0]}` : kode;
+                    return (
+                      <div
+                        key={kode}
+                        className="flex items-center gap-1.5 pl-3 pr-1.5 py-1.5 bg-primary-50 rounded-xl border border-primary-100 text-xs"
+                      >
+                        <span className="font-bold text-primary-750">
+                          {displayName}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveCrop(kode)}
+                          className="text-primary-400 hover:text-red-650 p-0.5 hover:bg-red-50 rounded-md transition-colors cursor-pointer"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
           </div>
 
           {/* Cycle Selection */}
@@ -249,10 +331,6 @@ export const Mode2Form: React.FC<Mode2FormProps> = ({
                       <h4 className="text-base font-bold text-sage-900 mt-0.5">{rot.nama_tanaman}</h4>
                       <span className="text-xs text-sage-500 font-semibold">{rot.rekomendasi}</span>
                     </div>
-
-                    <span className="text-[10px] font-bold uppercase px-2.5 py-1 rounded-full bg-green-100 text-green-700">
-                      {rot.tingkatKepercayaan}
-                    </span>
                   </div>
 
                   {/* Agronomic Alasan */}

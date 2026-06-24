@@ -1,5 +1,5 @@
 import React from "react";
-import { Sprout, RefreshCw, BookOpen, Menu, ChevronLeft, ChevronRight, History } from "lucide-react";
+import { Sprout, RefreshCw, BookOpen, ChevronLeft, ChevronRight, History, LogOut, User as UserIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import HistoryList, { HistoryItem } from "./HistoryList";
 
@@ -11,6 +11,9 @@ interface SidebarProps {
   historyItems: HistoryItem[];
   activeHistoryId?: string;
   onSelectHistory: (item: HistoryItem) => void;
+  userSession: { name?: string | null; email?: string | null } | null;
+  onLoginClick: () => void;
+  onLogoutClick: () => void;
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({
@@ -21,6 +24,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
   historyItems,
   activeHistoryId,
   onSelectHistory,
+  userSession,
+  onLoginClick,
+  onLogoutClick,
 }) => {
   const menuItems = [
     {
@@ -114,18 +120,59 @@ export const Sidebar: React.FC<SidebarProps> = ({
         </div>
       </div>
 
-      {/* Sidebar Footer / Collapse Trigger */}
-      <div className="p-3 border-t border-sage-200 bg-sage-50/20">
+      {/* Sidebar Footer / Profile & Auth */}
+      <div className="border-t border-sage-200 bg-sage-50/20 p-3 space-y-3">
+        {/* Profile Card / Login Button */}
+        {userSession ? (
+          <div className={cn("flex items-center gap-2", isCollapsed ? "justify-center" : "px-1")}>
+            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary-600 text-white font-bold text-sm flex-shrink-0">
+              {userSession.name ? userSession.name.charAt(0).toUpperCase() : "U"}
+            </div>
+            {!isCollapsed && (
+              <div className="flex-1 min-w-0">
+                <p className="text-xs font-bold text-sage-800 truncate leading-tight">
+                  {userSession.name}
+                </p>
+                <p className="text-[10px] text-sage-505 truncate mt-0.5">
+                  {userSession.email}
+                </p>
+              </div>
+            )}
+            {!isCollapsed && (
+              <button
+                onClick={onLogoutClick}
+                className="p-1.5 text-sage-400 hover:text-red-600 rounded-lg hover:bg-red-50 transition-colors focus:outline-none cursor-pointer"
+                title="Logout"
+              >
+                <LogOut className="w-4 h-4" />
+              </button>
+            )}
+          </div>
+        ) : (
+          <button
+            onClick={onLoginClick}
+            className={cn(
+              "w-full flex items-center justify-center gap-2 rounded-xl bg-primary-600 text-white hover:bg-primary-700 font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 py-2.5 text-xs cursor-pointer shadow-sm",
+              isCollapsed && "px-0"
+            )}
+            title={isCollapsed ? "Login" : undefined}
+          >
+            <UserIcon className="w-4 h-4" />
+            {!isCollapsed && <span>Login / Daftar</span>}
+          </button>
+        )}
+
+        {/* Collapse Trigger */}
         <button
           onClick={onToggleCollapse}
-          className="w-full flex items-center justify-center p-2.5 rounded-lg border border-sage-200 text-sage-500 hover:text-sage-900 hover:bg-sage-100/50 transition-all duration-200"
+          className="w-full flex items-center justify-center p-2.5 rounded-lg border border-sage-200 text-sage-500 hover:text-sage-900 hover:bg-sage-100/50 transition-all duration-200 cursor-pointer"
           aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
         >
           {isCollapsed ? (
             <ChevronRight className="w-4 h-4" />
           ) : (
-            <div className="flex items-center gap-2 text-xs font-semibold">
-              <ChevronLeft className="w-4 h-4" />
+            <div className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider">
+              <ChevronLeft className="w-3.5 h-3.5" />
               <span>Sembunyikan Menu</span>
             </div>
           )}

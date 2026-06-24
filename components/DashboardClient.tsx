@@ -3,9 +3,9 @@
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { signOut } from "next-auth/react";
-import Header from "@/components/Header";
 import Sidebar from "@/components/Sidebar";
 import Drawer from "@/components/Drawer";
+import FloatingMenuButton from "@/components/FloatingMenuButton";
 import Mode1Form from "@/components/Mode1Form";
 import Mode2Form from "@/components/Mode2Form";
 import Mode3Catalog, { CatalogCrop } from "@/components/Mode3Catalog";
@@ -63,7 +63,7 @@ export const DashboardClient: React.FC<DashboardClientProps> = ({
     const newItem: HistoryItem = {
       id: `hist-sim-${Date.now()}`,
       type: "lahan",
-      title: `Lahan pH ${data.ph === "K014" ? "Masam" : "Normal"}`,
+      title: data.namaKonsultasi || `Lahan pH ${data.ph === "K014" ? "Masam" : "Normal"}`,
       timestamp: new Date(),
       summary: "Hasil evaluasi kondisi kriteria kecocokan",
     };
@@ -73,13 +73,15 @@ export const DashboardClient: React.FC<DashboardClientProps> = ({
 
   const handleRotasiSubmit = (data: any) => {
     console.log("Mode 2 submitted data:", data);
-    const selectedCropName = MOCK_CROPS.find(c => c.kode_tanaman === data.tanamanSebelum)?.nama_tanaman || "Tanaman";
+    const list = data.tanamanSebelumList || [];
+    const summary = `Rencana ${data.cycles} siklus (${list.join(" → ")})`;
+
     const newItem: HistoryItem = {
       id: `hist-sim-${Date.now()}`,
       type: "rotasi",
-      title: `Rotasi ${selectedCropName.split(",")[0]}`,
+      title: data.namaKonsultasi || "Rencana Rotasi",
       timestamp: new Date(),
-      summary: `Rencana ${data.cycles} siklus rotasi tanam`,
+      summary,
     };
     setHistoryItems([newItem, ...historyItems]);
     setActiveHistoryId(newItem.id);
@@ -101,6 +103,9 @@ export const DashboardClient: React.FC<DashboardClientProps> = ({
 
   return (
     <div className="flex h-screen w-screen overflow-hidden bg-background">
+      {/* Floating Menu Button for Mobile */}
+      <FloatingMenuButton onClick={() => setIsDrawerOpen(true)} />
+
       {/* Sidebar: Desktop */}
       <Sidebar
         currentView={view}
@@ -110,6 +115,9 @@ export const DashboardClient: React.FC<DashboardClientProps> = ({
         historyItems={historyItems}
         activeHistoryId={activeHistoryId}
         onSelectHistory={handleSelectHistory}
+        userSession={session?.user || null}
+        onLoginClick={handleLoginClick}
+        onLogoutClick={handleLogoutClick}
       />
 
       {/* Drawer: Mobile / Tablet */}
@@ -121,21 +129,15 @@ export const DashboardClient: React.FC<DashboardClientProps> = ({
         historyItems={historyItems}
         activeHistoryId={activeHistoryId}
         onSelectHistory={handleSelectHistory}
+        userSession={session?.user || null}
+        onLoginClick={handleLoginClick}
+        onLogoutClick={handleLogoutClick}
       />
 
       {/* Main Workspace Frame */}
       <div className="flex flex-1 flex-col h-full overflow-hidden">
-        {/* Header */}
-        <Header
-          currentView={view}
-          userSession={session?.user || null}
-          onMenuClick={() => setIsDrawerOpen(true)}
-          onLoginClick={handleLoginClick}
-          onLogoutClick={handleLogoutClick}
-        />
-
         {/* Content Panel */}
-        <main className="flex-1 overflow-y-auto p-4 md:p-6 bg-sage-50/20">
+        <main className="flex-1 overflow-y-auto p-4 md:p-6 bg-sage-50/20 pt-16 md:pt-6">
           {view === "lahan" && (
             <Mode1Form onSubmit={handleLahanSubmit} />
           )}
