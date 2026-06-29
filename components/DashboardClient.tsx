@@ -40,11 +40,13 @@ const MOCK_CROPS: CatalogCrop[] = [
 interface DashboardClientProps {
   session: { user?: { name?: string | null; email?: string | null; id?: string } } | null;
   initialHistoryItems: HistoryItem[];
+  crops: CatalogCrop[];
 }
 
 export const DashboardClient: React.FC<DashboardClientProps> = ({
   session,
   initialHistoryItems = [],
+  crops = [],
 }) => {
   const router = useRouter();
 
@@ -56,41 +58,167 @@ export const DashboardClient: React.FC<DashboardClientProps> = ({
   // History state initialized with database logs
   const [historyItems, setHistoryItems] = useState<HistoryItem[]>(initialHistoryItems);
   const [activeHistoryId, setActiveHistoryId] = useState<string | undefined>(undefined);
+  const [activeHistoryData, setActiveHistoryData] = useState<any>(null);
 
-  // Handle local simulation of submission history addition
-  const handleLahanSubmit = (data: any) => {
-    console.log("Mode 1 submitted data:", data);
-    const newItem: HistoryItem = {
-      id: `hist-sim-${Date.now()}`,
-      type: "lahan",
-      title: data.namaKonsultasi || `Lahan pH ${data.ph === "K014" ? "Masam" : "Normal"}`,
-      timestamp: new Date(),
-      summary: "Hasil evaluasi kondisi kriteria kecocokan",
-    };
-    setHistoryItems([newItem, ...historyItems]);
-    setActiveHistoryId(newItem.id);
+  React.useEffect(() => {
+    setHistoryItems(initialHistoryItems);
+  }, [initialHistoryItems]);
+
+  // API response and loading states
+  const [lahanResult, setLahanResult] = useState<any>(null);
+  const [lahanLoading, setLahanLoading] = useState(false);
+
+  const [rotasiResult, setRotasiResult] = useState<any>(null);
+  const [rotasiLoading, setRotasiLoading] = useState(false);
+
+  // Handle submissions via REST API endpoints
+  const handleLahanSubmit = async (data: any) => {
+    setLahanLoading(true);
+    setLahanResult(null);
+    setActiveHistoryId(undefined);
+    setActiveHistoryData(null);
+    try {
+      const res = await fetch("/api/lahan", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      });
+      const resData = await res.json();
+      if (resData.success) {
+        setLahanResult(resData);
+        // Refresh server component to fetch latest DB history
+        if (session?.user?.email) {
+          router.refresh();
+        } else {
+          // If not authenticated, store result directly in client state history
+          const newItem: HistoryItem = {
+            id: `hist-local-${Date.now()}`,
+            type: "lahan",
+            title: data.namaKonsultasi || "Analisis Lahan",
+            timestamp: new Date(),
+            summary: `Evaluasi kesesuaian: ${resData.crops?.length || 0} tanaman cocok`,
+            resultData: {
+              input_kondisi_lahan: data,
+              hasil_rekomendasi: resData.crops,
+            },
+          };
+          setHistoryItems([newItem, ...historyItems]);
+          setActiveHistoryId(newItem.id);
+          setActiveHistoryData(newItem.resultData);
+        }
+      } else {
+        alert("Gagal memproses data: " + resData.error);
+      }
+    } catch (error: any) {
+      console.error(error);
+      alert("Terjadi kesalahan sistem: " + error.message);
+    } finally {
+      setLahanLoading(false);
+    }
   };
 
-  const handleRotasiSubmit = (data: any) => {
-    console.log("Mode 2 submitted data:", data);
-    const list = data.tanamanSebelumList || [];
-    const summary = `Rencana ${data.cycles} siklus (${list.join(" → ")})`;
+  const handleRotasiSubmit = async (data: any) => {
+    setRotasiLoading(true);
+    setRotasiResult(null);
+    setActiveHistoryId(undefined);
+    setActiveHistoryData(null);
+    try {
+      const res = await fetch("/api/rotasi", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      });
+      const resData = await res.json();
+      if (resData.success) {
+        setRotasiResult(resData);
+        // Refresh server component to fetch latest DB history
+        if (session?.user?.email) {
+          router.refresh();
+        } else {
+          // If not authenticated, store result directly in client state history
+          const list = data.tanamanSebelumList || [];
+          const summary = `Rencana ${list.length} siklus (${list.join(" → ")})`;
 
-    const newItem: HistoryItem = {
-      id: `hist-sim-${Date.now()}`,
-      type: "rotasi",
-      title: data.namaKonsultasi || "Rencana Rotasi",
-      timestamp: new Date(),
-      summary,
-    };
-    setHistoryItems([newItem, ...historyItems]);
-    setActiveHistoryId(newItem.id);
+          const newItem: HistoryItem = {
+            id: `hist-local-${Date.now()}`,
+            type: "rotasi",
+            title: data.namaKonsultasi || "Rencana Rotasi",
+            timestamp: new Date(),
+            summary,
+            resultData: {
+              input_kondisi_lahan: data.lahan ? { ...data.lahan, namaKonsultasi: data.namaKonsultasi } : { namaKonsultasi: data.namaKonsultasi },
+              tanaman_sebelumnya: list[list.length - 1],
+              hasil_rekomendasi: {
+                warnings: resData.warnings,
+                recommendations: resData.recommendations,
+                rejectedCrops: resData.rejectedCrops || [],
+                tanamanSebelumList: list,
+                cycles: list.length,
+              },
+            },
+          };
+          setHistoryItems([newItem, ...historyItems]);
+          setActiveHistoryId(newItem.id);
+          setActiveHistoryData(newItem.resultData);
+        }
+      } else {
+        alert("Gagal memproses data: " + resData.error);
+      }
+    } catch (error: any) {
+      console.error(error);
+      alert("Terjadi kesalahan sistem: " + error.message);
+    } finally {
+      setRotasiLoading(false);
+    }
   };
 
-  const handleSelectHistory = (item: HistoryItem) => {
+  const handleSelectHistory = async (item: HistoryItem) => {
     setActiveHistoryId(item.id);
     setView(item.type);
     setIsDrawerOpen(false);
+
+    // Reset current UI results
+    setLahanResult(null);
+    setRotasiResult(null);
+
+    // If local/simulated history item
+    if (item.id.startsWith("hist-local-") || item.id.startsWith("hist-sim-")) {
+      setActiveHistoryData(item.resultData);
+      if (item.type === "lahan") {
+        setLahanResult({ crops: item.resultData.hasil_rekomendasi });
+      } else {
+        setRotasiResult(item.resultData.hasil_rekomendasi);
+      }
+    } else {
+      // Database query for historic item
+      try {
+        if (item.type === "lahan") {
+          setLahanLoading(true);
+        } else {
+          setRotasiLoading(true);
+        }
+        const res = await fetch(`/api/riwayat/${item.id}`);
+        const resData = await res.json();
+        if (resData.success) {
+          setActiveHistoryData(resData.data);
+          if (item.type === "lahan") {
+            setLahanResult({ crops: resData.data.hasil_rekomendasi });
+          } else {
+            const hasil = resData.data.hasil_rekomendasi;
+            setRotasiResult({
+              warnings: hasil.warnings,
+              recommendations: hasil.recommendations,
+              rejectedCrops: hasil.rejectedCrops || [],
+            });
+          }
+        }
+      } catch (error) {
+        console.error("Failed to load history logs details:", error);
+      } finally {
+        setLahanLoading(false);
+        setRotasiLoading(false);
+      }
+    }
   };
 
   const handleLoginClick = () => {
@@ -139,18 +267,26 @@ export const DashboardClient: React.FC<DashboardClientProps> = ({
         {/* Content Panel */}
         <main className="flex-1 overflow-y-auto p-4 md:p-6 bg-sage-50/20 pt-16 md:pt-6">
           {view === "lahan" && (
-            <Mode1Form onSubmit={handleLahanSubmit} />
+            <Mode1Form
+              onSubmit={handleLahanSubmit}
+              isLoading={lahanLoading}
+              result={lahanResult}
+              initialInputs={activeHistoryId && activeHistoryData && !activeHistoryData.tanaman_sebelumnya ? activeHistoryData.input_kondisi_lahan : null}
+            />
           )}
 
           {view === "rotasi" && (
             <Mode2Form
               onSubmit={handleRotasiSubmit}
-              cropsList={MOCK_CROPS}
+              cropsList={crops}
+              isLoading={rotasiLoading}
+              result={rotasiResult}
+              initialInputs={activeHistoryId && activeHistoryData && activeHistoryData.tanaman_sebelumnya ? { lahan: activeHistoryData.input_kondisi_lahan, tanamanSebelumList: activeHistoryData.hasil_rekomendasi?.tanamanSebelumList || [] } : null}
             />
           )}
 
           {view === "katalog" && (
-            <Mode3Catalog crops={MOCK_CROPS} />
+            <Mode3Catalog crops={crops} />
           )}
         </main>
       </div>

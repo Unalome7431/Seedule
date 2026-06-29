@@ -45,7 +45,7 @@ export const Mode3Catalog: React.FC<Mode3CatalogProps> = ({
             Katalog Referensi Komoditas
           </h2>
           <p className="text-xs text-sage-500 mt-1 font-sans">
-            Cari data botanikal, kriteria lahan optimal, dan hasil wawancara pakar untuk 22 komoditas pertanian.
+            Cari data botanikal, kriteria lahan optimal, dan hasil wawancara pakar untuk 32 komoditas pertanian.
           </p>
         </div>
 

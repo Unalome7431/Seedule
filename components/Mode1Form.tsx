@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Thermometer, Droplet, Layers, Compass, Percent, Sprout, ShieldCheck, FileText, CheckCircle2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -6,12 +6,14 @@ interface Mode1FormProps {
   onSubmit: (data: any) => void;
   isLoading?: boolean;
   result?: any;
+  initialInputs?: any;
 }
 
 export const Mode1Form: React.FC<Mode1FormProps> = ({
   onSubmit,
   isLoading = false,
   result,
+  initialInputs,
 }) => {
   // Input states
   const [namaKonsultasi, setNamaKonsultasi] = useState("");
@@ -20,6 +22,17 @@ export const Mode1Form: React.FC<Mode1FormProps> = ({
   const [kedalaman, setKedalaman] = useState("");
   const [kejenuhan, setKejenuhan] = useState("");
   const [ph, setPh] = useState("");
+
+  useEffect(() => {
+    if (initialInputs) {
+      setNamaKonsultasi(initialInputs.namaKonsultasi || "");
+      setSuhu(initialInputs.suhu || "");
+      setAir(initialInputs.air || "");
+      setKedalaman(initialInputs.kedalaman || "");
+      setKejenuhan(initialInputs.kejenuhan || "");
+      setPh(initialInputs.ph || "");
+    }
+  }, [initialInputs]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -213,22 +226,157 @@ export const Mode1Form: React.FC<Mode1FormProps> = ({
           <h3 className="text-sm font-bold text-sage-800 uppercase tracking-wider px-1">Rekomendasi Tanaman</h3>
 
           {isLoading ? (
-            <div className="bg-white p-12 rounded-2xl border border-sage-200 shadow-sm flex flex-col items-center justify-center space-y-4">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
-              <p className="text-sm text-sage-500">Menghitung Certainty Factor tanaman...</p>
-            </div>
-          ) : result ? (
-            // Active results list (will be populated during Phase 3 & 4)
-            <div className="space-y-3">
-              {result.crops?.map((crop: any, index: number) => (
-                <div key={crop.kode} className="bg-white p-4 rounded-xl border border-sage-200 shadow-sm flex gap-4">
-                  {/* Visual list structure */}
+            <div className="space-y-4 animate-pulse">
+              <div className="bg-sage-50/50 p-4 rounded-xl border border-sage-200 text-center">
+                <div className="h-4 bg-sage-200 w-2/3 mx-auto rounded" />
+              </div>
+              {[1, 2, 3].map((n) => (
+                <div
+                  key={n}
+                  className="bg-white p-5 rounded-2xl border border-sage-200 shadow-sm space-y-4"
+                >
+                  <div className="flex items-start gap-4">
+                    {/* Icon Skeleton */}
+                    <div className="w-12 h-12 bg-sage-100 rounded-xl flex-shrink-0" />
+                    {/* Title Details Skeleton */}
+                    <div className="flex-1 space-y-2.5">
+                      <div className="h-4 bg-sage-200 w-2/5 rounded" />
+                      <div className="h-3 bg-sage-100 w-1/4 rounded" />
+                      {/* Badges Skeletons */}
+                      <div className="flex gap-2 pt-1">
+                        <div className="h-5 bg-sage-100 w-16 rounded-full" />
+                        <div className="h-5 bg-sage-100 w-24 rounded-full" />
+                        <div className="h-5 bg-sage-105 w-20 rounded-full" />
+                      </div>
+                    </div>
+                  </div>
                 </div>
               ))}
             </div>
+          ) : result ? (
+            <div className="space-y-4">
+              <div className="bg-primary-50 p-4 rounded-xl border border-primary-100 text-center">
+                <p className="text-xs text-primary-800 font-semibold">
+                  Ditemukan {result.crops?.length || 0} tanaman yang cocok dengan karakteristik lahan Anda:
+                </p>
+              </div>
+
+              <div className="max-h-[600px] overflow-y-auto pr-1.5 space-y-4">
+                {result.crops?.map((crop: any, index: number) => {
+                  const isPakar = crop.status_validasi === "tervalidasi_pakar";
+                  const isEstimasi = crop.status_validasi === "estimasi_famili";
+
+                  return (
+                    <div
+                      key={crop.kode_tanaman}
+                      className={cn(
+                        "bg-white p-5 rounded-2xl border transition-all duration-300 shadow-sm relative overflow-hidden group hover:shadow-md",
+                        index === 0 ? "border-primary-300 ring-1 ring-primary-100/50" : "border-sage-200"
+                      )}
+                    >
+                      {/* Rank Badge */}
+                      <div className="absolute top-0 right-0 bg-sage-100 group-hover:bg-sage-200 text-sage-700 text-[10px] font-bold px-3 py-1 rounded-bl-xl transition-colors">
+                        Peringkat #{index + 1}
+                      </div>
+
+                      <div className="flex items-start gap-4">
+                        {/* Icon */}
+                        <div
+                          className={cn(
+                            "p-3 rounded-xl flex-shrink-0 flex items-center justify-center",
+                            index === 0
+                              ? "bg-primary-100 text-primary-600"
+                              : "bg-sage-100 text-sage-600"
+                          )}
+                        >
+                          <Sprout className="w-6 h-6" />
+                        </div>
+
+                        {/* Details */}
+                        <div className="flex-1 space-y-2 min-w-0 pr-8">
+                          <div>
+                            <h4 className="text-base font-extrabold text-sage-900 truncate">
+                              {crop.nama_tanaman}
+                            </h4>
+                            <span className="text-xs text-sage-500 font-semibold block">
+                              Famili: <span className="italic">{crop.famili_botani}</span>
+                            </span>
+                          </div>
+
+                          {/* Badges */}
+                          <div className="flex flex-wrap gap-1.5 items-center">
+                            <span className="text-[10px] bg-sage-100 text-sage-600 px-2 py-0.5 rounded-full font-bold">
+                              {crop.kategori}
+                            </span>
+                            
+                            <span
+                              className={cn(
+                                "text-[10px] px-2 py-0.5 rounded-full font-bold flex items-center gap-1 border",
+                                isPakar
+                                  ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                                  : isEstimasi
+                                  ? "bg-amber-50 text-amber-700 border-amber-200"
+                                  : "bg-slate-50 text-slate-700 border-slate-200"
+                              )}
+                            >
+                              <ShieldCheck className="w-3 h-3" />
+                              {isPakar
+                                ? "Tervalidasi Pakar"
+                                : isEstimasi
+                                ? "Estimasi Famili"
+                                : "Literatur"}
+                            </span>
+
+                            <span className="text-[10px] bg-primary-50 text-primary-700 px-2 py-0.5 rounded-full font-extrabold border border-primary-200">
+                              {crop.cf_lahan}% Kecocokan (CF)
+                            </span>
+                          </div>
+
+                          {/* Matched criteria list */}
+                          <div className="pt-2 border-t border-sage-100 mt-2 space-y-1.5">
+                            <span className="text-[10px] text-sage-400 font-bold uppercase tracking-wider block">
+                              Kriteria Lahan Terpenuhi:
+                            </span>
+                            <div className="flex flex-wrap gap-1">
+                              {crop.matchedCriteria?.map((crit: any) => (
+                                <span
+                                  key={crit.kode_kriteria}
+                                  className="text-[10px] bg-sage-50 text-sage-700 px-2 py-0.5 rounded-md border border-sage-100 flex items-center gap-1 font-sans font-medium"
+                                  title={`Bobot CF: ${crit.bobot_cf}`}
+                                >
+                                  <CheckCircle2 className="w-3 h-3 text-primary-500" />
+                                  {crit.deskripsi}
+                                </span>
+                              ))}
+                            </div>
+                          </div>
+
+                          {/* Expert validation correction notes */}
+                          {crop.validation && (
+                            <div className="bg-sage-50/50 p-3 rounded-xl border border-sage-200/50 mt-2 space-y-1">
+                              <span className="text-[9px] text-sage-500 font-bold uppercase tracking-wider block">
+                                Catatan Pakar ({crop.validation.nama_pakar}):
+                              </span>
+                              <p className="text-xs text-sage-700 leading-relaxed font-sans">
+                                {crop.validation.catatan_revisi || "Aturan kesesuaian tervalidasi penuh."}
+                              </p>
+                              {crop.validation.urutan_prioritas_pakar && (
+                                <p className="text-[10px] text-sage-500 font-medium">
+                                  Prioritas: {crop.validation.urutan_prioritas_pakar}
+                                </p>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
           ) : (
             // Placeholder/Mock display
-            <div className="space-y-3">
+            <div className="max-h-[600px] overflow-y-auto pr-1.5 space-y-3">
               <div className="bg-sage-100/40 p-4 rounded-xl border border-dashed border-sage-300 text-center mb-2">
                 <p className="text-xs text-sage-500">
                   Berikut adalah contoh output rekomendasi saat form diisi:
