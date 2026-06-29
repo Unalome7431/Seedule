@@ -263,9 +263,6 @@ export const Mode1Form: React.FC<Mode1FormProps> = ({
 
               <div className="max-h-[600px] overflow-y-auto pr-1.5 space-y-4">
                 {result.crops?.map((crop: any, index: number) => {
-                  const isPakar = crop.status_validasi === "tervalidasi_pakar";
-                  const isEstimasi = crop.status_validasi === "estimasi_famili";
-
                   return (
                     <div
                       key={crop.kode_tanaman}
@@ -308,24 +305,6 @@ export const Mode1Form: React.FC<Mode1FormProps> = ({
                             <span className="text-[10px] bg-sage-100 text-sage-600 px-2 py-0.5 rounded-full font-bold">
                               {crop.kategori}
                             </span>
-                            
-                            <span
-                              className={cn(
-                                "text-[10px] px-2 py-0.5 rounded-full font-bold flex items-center gap-1 border",
-                                isPakar
-                                  ? "bg-emerald-50 text-emerald-700 border-emerald-200"
-                                  : isEstimasi
-                                  ? "bg-amber-50 text-amber-700 border-amber-200"
-                                  : "bg-slate-50 text-slate-700 border-slate-200"
-                              )}
-                            >
-                              <ShieldCheck className="w-3 h-3" />
-                              {isPakar
-                                ? "Tervalidasi Pakar"
-                                : isEstimasi
-                                ? "Estimasi Famili"
-                                : "Literatur"}
-                            </span>
 
                             <span className="text-[10px] bg-primary-50 text-primary-700 px-2 py-0.5 rounded-full font-extrabold border border-primary-200">
                               {crop.cf_lahan}% Kecocokan (CF)
@@ -350,23 +329,6 @@ export const Mode1Form: React.FC<Mode1FormProps> = ({
                               ))}
                             </div>
                           </div>
-
-                          {/* Expert validation correction notes */}
-                          {crop.validation && (
-                            <div className="bg-sage-50/50 p-3 rounded-xl border border-sage-200/50 mt-2 space-y-1">
-                              <span className="text-[9px] text-sage-500 font-bold uppercase tracking-wider block">
-                                Catatan Pakar ({crop.validation.nama_pakar}):
-                              </span>
-                              <p className="text-xs text-sage-700 leading-relaxed font-sans">
-                                {crop.validation.catatan_revisi || "Aturan kesesuaian tervalidasi penuh."}
-                              </p>
-                              {crop.validation.urutan_prioritas_pakar && (
-                                <p className="text-[10px] text-sage-500 font-medium">
-                                  Prioritas: {crop.validation.urutan_prioritas_pakar}
-                                </p>
-                              )}
-                            </div>
-                          )}
                         </div>
                       </div>
                     </div>

@@ -75,13 +75,16 @@ export const DashboardClient: React.FC<DashboardClientProps> = ({
   const handleLahanSubmit = async (data: any) => {
     setLahanLoading(true);
     setLahanResult(null);
-    setActiveHistoryId(undefined);
-    setActiveHistoryData(null);
+    const historyId = activeHistoryId;
+    if (!historyId) {
+      setActiveHistoryId(undefined);
+      setActiveHistoryData(null);
+    }
     try {
       const res = await fetch("/api/lahan", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data),
+        body: JSON.stringify({ ...data, historyId }),
       });
       const resData = await res.json();
       if (resData.success) {
@@ -89,6 +92,13 @@ export const DashboardClient: React.FC<DashboardClientProps> = ({
         // Refresh server component to fetch latest DB history
         if (session?.user?.email) {
           router.refresh();
+          if (historyId) {
+            setActiveHistoryData({
+              id: historyId,
+              input_kondisi_lahan: data,
+              hasil_rekomendasi: resData.crops,
+            });
+          }
         } else {
           // If not authenticated, store result directly in client state history
           const newItem: HistoryItem = {
@@ -120,13 +130,16 @@ export const DashboardClient: React.FC<DashboardClientProps> = ({
   const handleRotasiSubmit = async (data: any) => {
     setRotasiLoading(true);
     setRotasiResult(null);
-    setActiveHistoryId(undefined);
-    setActiveHistoryData(null);
+    const historyId = activeHistoryId;
+    if (!historyId) {
+      setActiveHistoryId(undefined);
+      setActiveHistoryData(null);
+    }
     try {
       const res = await fetch("/api/rotasi", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data),
+        body: JSON.stringify({ ...data, historyId }),
       });
       const resData = await res.json();
       if (resData.success) {
@@ -134,6 +147,20 @@ export const DashboardClient: React.FC<DashboardClientProps> = ({
         // Refresh server component to fetch latest DB history
         if (session?.user?.email) {
           router.refresh();
+          if (historyId) {
+            setActiveHistoryData({
+              id: historyId,
+              input_kondisi_lahan: data.lahan ? { ...data.lahan, namaKonsultasi: data.namaKonsultasi } : { namaKonsultasi: data.namaKonsultasi },
+              tanaman_sebelumnya: data.tanamanSebelumList[data.tanamanSebelumList.length - 1],
+              hasil_rekomendasi: {
+                warnings: resData.warnings,
+                recommendations: resData.recommendations,
+                rejectedCrops: resData.rejectedCrops || [],
+                tanamanSebelumList: data.tanamanSebelumList,
+                cycles: data.tanamanSebelumList.length,
+              },
+            });
+          }
         } else {
           // If not authenticated, store result directly in client state history
           const list = data.tanamanSebelumList || [];

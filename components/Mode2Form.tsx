@@ -380,9 +380,6 @@ export const Mode2Form: React.FC<Mode2FormProps> = ({
               ) : (
                 <div className="max-h-[600px] overflow-y-auto pr-1.5 space-y-4">
                   {result.recommendations.map((rec: any, index: number) => {
-                    const isPakar = rec.ruleSource === "pakar";
-                    const isEstimasi = rec.ruleSource === "generalisasi_famili";
-
                     return (
                       <div key={rec.kode_tanaman} className="bg-white p-5 rounded-2xl border border-sage-200 shadow-sm space-y-4">
                         {/* Title and Trust Tag */}
@@ -405,50 +402,17 @@ export const Mode2Form: React.FC<Mode2FormProps> = ({
                                 {rec.cf_lahan}% Kecocokan Lahan
                               </span>
                             )}
-                            <span
-                              className={cn(
-                                "text-[10px] px-2.5 py-1 rounded-lg font-bold border",
-                                isPakar
-                                  ? "bg-emerald-50 text-emerald-700 border-emerald-100"
-                                  : isEstimasi
-                                  ? "bg-amber-50 text-amber-700 border-amber-100"
-                                  : "bg-slate-50 text-slate-700 border-slate-100"
-                              )}
-                            >
-                              {isPakar
-                                ? "Tervalidasi Pakar"
-                                : isEstimasi
-                                ? "Estimasi Famili"
-                                : "Literatur"}
-                            </span>
-                          </div>
-                        </div>
-
-                        {/* Agronomic Alasan */}
-                        <div className="bg-sage-50 p-4 rounded-xl border border-sage-100/80">
-                          <div className="flex gap-2">
-                            <Info className="w-4.5 h-4.5 text-sage-500 flex-shrink-0 mt-0.5" />
-                            <p className="text-xs text-sage-700 leading-relaxed font-sans">
-                              <strong className="text-sage-800">Alasan Agronomis:</strong> {rec.alasan_agronomis}
-                            </p>
                           </div>
                         </div>
 
                         {/* Rest Interval Parameters */}
-                        <div className="grid grid-cols-1 sm:grid-cols-12 gap-3 pt-1">
-                          <div className="sm:col-span-4 bg-primary-50/40 border border-primary-100 p-3 rounded-xl flex items-center gap-3">
+                        <div className="pt-1">
+                          <div className="bg-primary-50/40 border border-primary-100 p-3 rounded-xl flex items-center gap-3">
                             <Calendar className="w-5 h-5 text-primary-600 flex-shrink-0" />
                             <div>
                               <span className="text-[10px] text-sage-500 font-bold block leading-none">JEDA ISTIRAHAT LAHAN</span>
                               <span className="text-sm font-extrabold text-primary-700 block mt-1">{rec.jeda}</span>
                             </div>
-                          </div>
-
-                          <div className="sm:col-span-8 bg-sage-50/40 border border-sage-200/60 p-3 rounded-xl">
-                            <span className="text-[10px] text-sage-500 font-bold block">Aktivitas Pemulihan Lahan:</span>
-                            <p className="text-xs text-sage-600 mt-1 font-sans leading-relaxed font-medium">
-                              {rec.jedaCatatan}
-                            </p>
                           </div>
                         </div>
                       </div>
@@ -502,31 +466,14 @@ export const Mode2Form: React.FC<Mode2FormProps> = ({
                     </div>
                   </div>
 
-                  {/* Agronomic Alasan */}
-                  <div className="bg-sage-50 p-4 rounded-xl border border-sage-100/80">
-                    <div className="flex gap-2">
-                      <Info className="w-4 h-4 text-sage-500 flex-shrink-0 mt-0.5" />
-                      <p className="text-xs text-sage-700 leading-relaxed font-sans">
-                        <strong className="text-sage-800">Alasan Agronomis:</strong> {rot.alasan}
-                      </p>
-                    </div>
-                  </div>
-
                   {/* Rest Interval Parameters */}
-                  <div className="grid grid-cols-1 sm:grid-cols-12 gap-3 pt-2">
-                    <div className="sm:col-span-4 bg-primary-50/40 border border-primary-100 p-3 rounded-xl flex items-center gap-3">
+                  <div className="pt-2">
+                    <div className="bg-primary-50/40 border border-primary-100 p-3 rounded-xl flex items-center gap-3">
                       <Calendar className="w-5 h-5 text-primary-600" />
                       <div>
                         <span className="text-[10px] text-sage-500 font-medium block leading-none">Jeda Istirahat</span>
                         <span className="text-sm font-extrabold text-primary-700 block mt-1">{rot.jeda}</span>
                       </div>
-                    </div>
-
-                    <div className="sm:col-span-8 bg-sage-50/40 border border-sage-200/60 p-3 rounded-xl">
-                      <span className="text-[10px] text-sage-500 font-bold block">Aktivitas Lahan Disarankan:</span>
-                      <p className="text-xs text-sage-600 mt-1 font-sans line-clamp-2">
-                        {rot.jedaCatatan}
-                      </p>
                     </div>
                   </div>
                 </div>

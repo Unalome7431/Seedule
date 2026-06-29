@@ -452,7 +452,7 @@ export async function recommendRotasi(
       jeda,
       jedaCatatan,
       ruleSource: nextChoice.rule ? nextChoice.rule.sumber : "literatur",
-      alasan_agronomis: nextChoice.rule ? nextChoice.rule.alasan_agronomis : "Rotasi netral berdasarkan literatur umum.",
+      alasan_agronomis: nextChoice.rule ? nextChoice.rule.alasan_agronomis : "Rekomendasi rotasi tanaman untuk menjaga kesehatan tanah.",
       constraint
     });
   }

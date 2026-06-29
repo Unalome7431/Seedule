@@ -75,9 +75,6 @@ export const Mode3Catalog: React.FC<Mode3CatalogProps> = ({
         /* Crops Grid list */
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {filteredCrops.map((crop) => {
-            const isPakar = crop.status_validasi === "tervalidasi_pakar";
-            const isEstimasi = crop.status_validasi === "estimasi_famili";
-
             return (
               <button
                 key={crop.kode_tanaman}
