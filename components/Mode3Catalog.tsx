@@ -45,7 +45,7 @@ export const Mode3Catalog: React.FC<Mode3CatalogProps> = ({
             Katalog Referensi Komoditas
           </h2>
           <p className="text-xs text-sage-500 mt-1 font-sans">
-            Cari data botanikal, kriteria lahan optimal, dan hasil wawancara pakar untuk 22 komoditas pertanian.
+            Cari data botanikal, kriteria lahan optimal, dan hasil wawancara pakar untuk 32 komoditas pertanian.
           </p>
         </div>
 
@@ -75,9 +75,6 @@ export const Mode3Catalog: React.FC<Mode3CatalogProps> = ({
         /* Crops Grid list */
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {filteredCrops.map((crop) => {
-            const isPakar = crop.status_validasi === "tervalidasi_pakar";
-            const isEstimasi = crop.status_validasi === "estimasi_famili";
-
             return (
               <button
                 key={crop.kode_tanaman}

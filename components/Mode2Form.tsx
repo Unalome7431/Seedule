@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { RefreshCw, ArrowRight, AlertTriangle, Info, Calendar, Sprout, ShieldAlert, CheckCircle, Plus, Trash2, FileText } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -7,6 +7,7 @@ interface Mode2FormProps {
   cropsList: Array<{ kode_tanaman: string; nama_tanaman: string; famili_botani: string }>;
   isLoading?: boolean;
   result?: any;
+  initialInputs?: any;
 }
 
 export const Mode2Form: React.FC<Mode2FormProps> = ({
@@ -14,11 +15,11 @@ export const Mode2Form: React.FC<Mode2FormProps> = ({
   cropsList = [],
   isLoading = false,
   result,
+  initialInputs,
 }) => {
   const [namaKonsultasi, setNamaKonsultasi] = useState("");
   const [selectedCrops, setSelectedCrops] = useState<string[]>([]);
   const [currentCrop, setCurrentCrop] = useState("");
-  const [cycles, setCycles] = useState("1");
   const [showLahan, setShowLahan] = useState(false);
 
   // Optional land states
@@ -27,6 +28,19 @@ export const Mode2Form: React.FC<Mode2FormProps> = ({
   const [kedalaman, setKedalaman] = useState("");
   const [kejenuhan, setKejenuhan] = useState("");
   const [ph, setPh] = useState("");
+
+  useEffect(() => {
+    if (initialInputs) {
+      const lahan = initialInputs.lahan;
+      setNamaKonsultasi(lahan?.namaKonsultasi || "");
+      setSuhu(lahan?.suhu || "");
+      setAir(lahan?.air || "");
+      setKedalaman(lahan?.kedalaman || "");
+      setKejenuhan(lahan?.kejenuhan || "");
+      setPh(lahan?.ph || "");
+      setSelectedCrops(initialInputs.tanamanSebelumList || []);
+    }
+  }, [initialInputs]);
 
   const handleAddCrop = () => {
     if (!currentCrop) return;
@@ -52,11 +66,15 @@ export const Mode2Form: React.FC<Mode2FormProps> = ({
       alert("Harap tambahkan minimal satu tanaman sebelum!");
       return;
     }
+    if (!suhu || !air || !kedalaman || !kejenuhan || !ph) {
+      alert("Harap isi semua kriteria kondisi lahan!");
+      return;
+    }
     onSubmit({
       namaKonsultasi: namaKonsultasi.trim(),
       tanamanSebelumList: selectedCrops,
-      cycles: parseInt(cycles),
-      lahan: showLahan ? { suhu, air, kedalaman, kejenuhan, ph } : null,
+      cycles: selectedCrops.length,
+      lahan: { suhu, air, kedalaman, kejenuhan, ph },
     });
   };
 
@@ -120,7 +138,7 @@ export const Mode2Form: React.FC<Mode2FormProps> = ({
           <div className="space-y-3">
             <div className="space-y-1.5">
               <label className="text-xs font-semibold text-sage-700">
-                Tanaman Sebelumnya / Histori Tanam (Berurutan)
+                Daftar Benih / Tanaman yang Ingin Ditanam (Diurutkan Otomatis)
               </label>
               <div className="flex gap-2 min-w-0">
                 <select
@@ -181,88 +199,90 @@ export const Mode2Form: React.FC<Mode2FormProps> = ({
             </div>
           </div>
 
-          {/* Cycle Selection */}
-          <div className="space-y-1.5">
-            <label className="text-xs font-semibold text-sage-700">
-              Rencana Jumlah Siklus ke Depan
-            </label>
-            <div className="grid grid-cols-3 gap-2">
-              {["1", "2", "3"].map((num) => (
-                <button
-                  key={num}
-                  type="button"
-                  onClick={() => setCycles(num)}
-                  className={cn(
-                    "p-2.5 text-sm font-bold rounded-xl border transition-all duration-200 cursor-pointer",
-                    cycles === num
-                      ? "bg-primary-600 text-white border-primary-600 shadow-sm shadow-primary-600/10"
-                      : "bg-sage-50/30 border-sage-200 text-sage-600 hover:bg-sage-100/50"
-                  )}
-                >
-                  {num} Siklus
-                </button>
-              ))}
+          {/* Land Conditions Section */}
+          <div className="space-y-3 pt-2 border-t border-sage-100">
+            <h3 className="text-xs font-bold text-sage-800 uppercase tracking-wider mb-1">Kondisi Lahan Saat Ini</h3>
+
+            {/* Suhu */}
+            <div className="space-y-1">
+              <label className="text-[10px] font-bold text-sage-500">Suhu Rata-Rata Lahan</label>
+              <select
+                value={suhu}
+                onChange={(e) => setSuhu(e.target.value)}
+                className="w-full text-xs rounded-lg border border-sage-200 bg-sage-50/30 p-2 text-sage-700 focus:outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500 transition-all duration-200"
+                required
+              >
+                <option value="">Pilih Suhu Lahan...</option>
+                <option value="K001">Suhu Dingin (15–20°C)</option>
+                <option value="K002">Suhu Sedang (21–25°C)</option>
+                <option value="K003">Suhu Panas (26–32°C)</option>
+              </select>
+            </div>
+
+            {/* Air */}
+            <div className="space-y-1">
+              <label className="text-[10px] font-bold text-sage-500">Ketersediaan Air Tahunan</label>
+              <select
+                value={air}
+                onChange={(e) => setAir(e.target.value)}
+                className="w-full text-xs rounded-lg border border-sage-200 bg-sage-50/30 p-2 text-sage-700 focus:outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500 transition-all duration-200"
+                required
+              >
+                <option value="">Pilih Ketersediaan Air...</option>
+                <option value="K004">Air Sangat Rendah (50–200 mm)</option>
+                <option value="K005">Air Rendah (200–500 mm)</option>
+                <option value="K006">Air Sedang (500–800 mm)</option>
+                <option value="K007">Air Tinggi (800–1300 mm)</option>
+              </select>
+            </div>
+
+            {/* Kedalaman */}
+            <div className="space-y-1">
+              <label className="text-[10px] font-bold text-sage-500">Kedalaman Solum Tanah</label>
+              <select
+                value={kedalaman}
+                onChange={(e) => setKedalaman(e.target.value)}
+                className="w-full text-xs rounded-lg border border-sage-200 bg-sage-50/30 p-2 text-sage-700 focus:outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500 transition-all duration-200"
+                required
+              >
+                <option value="">Pilih Kedalaman Tanah...</option>
+                <option value="K008">Dangkal (&gt; 50 cm)</option>
+                <option value="K009">Dalam (&gt; 75 cm)</option>
+              </select>
+            </div>
+
+            {/* Kejenuhan */}
+            <div className="space-y-1">
+              <label className="text-[10px] font-bold text-sage-500">Kejenuhan Basa Tanah</label>
+              <select
+                value={kejenuhan}
+                onChange={(e) => setKejenuhan(e.target.value)}
+                className="w-full text-xs rounded-lg border border-sage-200 bg-sage-50/30 p-2 text-sage-700 focus:outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500 transition-all duration-200"
+                required
+              >
+                <option value="">Pilih Kejenuhan Basa...</option>
+                <option value="K010">Sedang (&gt; 35%)</option>
+                <option value="K011">Tinggi (&gt; 50%)</option>
+              </select>
+            </div>
+
+            {/* pH */}
+            <div className="space-y-1">
+              <label className="text-[10px] font-bold text-sage-500">Kemasaman Tanah (pH)</label>
+              <select
+                value={ph}
+                onChange={(e) => setPh(e.target.value)}
+                className="w-full text-xs rounded-lg border border-sage-200 bg-sage-50/30 p-2 text-sage-700 focus:outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500 transition-all duration-200"
+                required
+              >
+                <option value="">Pilih Keasaman pH...</option>
+                <option value="K014">Masam (5.0–5.9)</option>
+                <option value="K012">Agak Masam (6.0–6.5)</option>
+                <option value="K013">Netral (6.6–7.0)</option>
+                <option value="K015">Agak Alkalis (7.1–7.9)</option>
+              </select>
             </div>
           </div>
-
-          {/* Optional Land Conditions Toggle */}
-          <div className="pt-2">
-            <button
-              type="button"
-              onClick={() => setShowLahan(!showLahan)}
-              className="text-xs font-bold text-primary-600 hover:text-primary-700 transition-colors flex items-center gap-1 cursor-pointer focus:outline-none"
-            >
-              {showLahan ? "Sembunyikan Kondisi Lahan (Opsional)" : "Sesuaikan Kondisi Lahan Saat Ini (Opsional)"}
-            </button>
-          </div>
-
-          {showLahan && (
-            <div className="space-y-3 pt-2 border-t border-sage-100 animate-fadeIn">
-              <div className="space-y-1">
-                <label className="text-[10px] font-bold text-sage-500">Suhu Rata-Rata</label>
-                <select
-                  value={suhu}
-                  onChange={(e) => setSuhu(e.target.value)}
-                  className="w-full text-xs rounded-lg border border-sage-200 bg-sage-50/30 p-2 text-sage-700 focus:outline-none"
-                >
-                  <option value="">Default pasca-panen...</option>
-                  <option value="K001">15–20°C</option>
-                  <option value="K002">21–25°C</option>
-                  <option value="K003">26–32°C</option>
-                </select>
-              </div>
-
-              <div className="space-y-1">
-                <label className="text-[10px] font-bold text-sage-500">Ketersediaan Air</label>
-                <select
-                  value={air}
-                  onChange={(e) => setAir(e.target.value)}
-                  className="w-full text-xs rounded-lg border border-sage-200 bg-sage-50/30 p-2 text-sage-700 focus:outline-none"
-                >
-                  <option value="">Default pasca-panen...</option>
-                  <option value="K004">50–200 mm</option>
-                  <option value="K005">200–500 mm</option>
-                  <option value="K006">500–800 mm</option>
-                  <option value="K007">800–1300 mm</option>
-                </select>
-              </div>
-
-              <div className="space-y-1">
-                <label className="text-[10px] font-bold text-sage-500">pH Tanah</label>
-                <select
-                  value={ph}
-                  onChange={(e) => setPh(e.target.value)}
-                  className="w-full text-xs rounded-lg border border-sage-200 bg-sage-50/30 p-2 text-sage-700 focus:outline-none"
-                >
-                  <option value="">Default pasca-panen...</option>
-                  <option value="K014">5.0–5.9</option>
-                  <option value="K012">6.0–6.5</option>
-                  <option value="K013">6.6–7.0</option>
-                  <option value="K015">7.1–7.9</option>
-                </select>
-              </div>
-            </div>
-          )}
 
           <button
             type="submit"
@@ -278,14 +298,128 @@ export const Mode2Form: React.FC<Mode2FormProps> = ({
           <h3 className="text-sm font-bold text-sage-800 uppercase tracking-wider px-1">Rekomendasi Rotasi & Risiko</h3>
 
           {isLoading ? (
-            <div className="bg-white p-12 rounded-2xl border border-sage-200 shadow-sm flex flex-col items-center justify-center space-y-4">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
-              <p className="text-sm text-sage-500">Mengevaluasi aturan rotasi & jeda waktu...</p>
+            <div className="space-y-4 animate-pulse">
+              {[1, 2].map((n) => (
+                <div
+                  key={n}
+                  className="bg-white p-5 rounded-2xl border border-sage-200 shadow-sm space-y-4"
+                >
+                  <div className="space-y-2.5">
+                    <div className="h-3 bg-sage-100 w-16 rounded" />
+                    <div className="h-4 bg-sage-200 w-2/5 rounded" />
+                    <div className="h-3 bg-sage-100 w-1/4 rounded" />
+                  </div>
+                  <div className="h-16 bg-sage-50 rounded-xl border border-sage-100/50" />
+                </div>
+              ))}
             </div>
           ) : result ? (
-            // Full UI output here in Phase 4
-            <div className="bg-white p-5 rounded-2xl border border-sage-200">
-              {/* Actual results */}
+            <div className="space-y-4">
+              {/* Rejected Crops Feedback */}
+              {result.rejectedCrops && result.rejectedCrops.length > 0 && (
+                <div className="space-y-2">
+                  {result.rejectedCrops.map((rc: any) => (
+                    <div
+                      key={rc.kode_tanaman}
+                      className="bg-red-50/40 p-4 rounded-xl border border-red-200 text-xs text-red-700 font-semibold flex items-center gap-2.5 relative overflow-hidden"
+                    >
+                      <div className="absolute left-0 top-0 bottom-0 w-1 bg-red-500" />
+                      <span className="w-1.5 h-1.5 rounded-full bg-red-500 flex-shrink-0 animate-pulse" />
+                      <span>
+                        Kandidat Ditolak: <strong className="text-red-900">{rc.nama_tanaman}</strong> tidak dimasukkan ke jadwal rotasi karena tingkat kecocokan lahan terlalu rendah (CF: {rc.cf_lahan}%).
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Warnings / Hazards Box */}
+              {result.warnings && result.warnings.length > 0 && (
+                <div className="space-y-3">
+                  {result.warnings.map((warn: any, i: number) => (
+                    <div
+                      key={i}
+                      className="bg-amber-50/50 p-5 rounded-2xl border border-amber-200 shadow-sm space-y-2 relative overflow-hidden"
+                    >
+                      <div className="absolute left-0 top-0 bottom-0 w-1 bg-amber-500" />
+                      
+                      <h4 className="text-sm font-bold text-amber-900 flex items-center gap-2">
+                        <ShieldAlert className="w-5 h-5 text-amber-600" />
+                        {warn.title}
+                      </h4>
+                      <p className="text-xs text-amber-700 leading-relaxed font-sans font-medium">
+                        {warn.desc}
+                      </p>
+                      
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 border-t border-amber-200/50 mt-2">
+                        <div>
+                          <span className="text-[9px] font-bold text-amber-800 uppercase tracking-wider block">Mitigasi Lahan:</span>
+                          <p className="text-xs text-amber-600 mt-0.5 font-sans font-medium">
+                            {warn.mitigasi}
+                          </p>
+                        </div>
+                        {warn.jeda && (
+                          <div>
+                            <span className="text-[9px] font-bold text-amber-800 uppercase tracking-wider block">Mitigasi Jeda Tanam:</span>
+                            <p className="text-xs text-amber-600 mt-0.5 font-sans font-medium">
+                              {warn.jeda}
+                            </p>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Recommendations list */}
+              {result.recommendations?.length === 0 ? (
+                <div className="bg-white p-12 rounded-2xl border border-dashed border-sage-200 text-center">
+                  <p className="text-sm text-sage-500">Tidak ada rekomendasi tanaman untuk rotasi berikutnya.</p>
+                </div>
+              ) : (
+                <div className="max-h-[600px] overflow-y-auto pr-1.5 space-y-4">
+                  {result.recommendations.map((rec: any, index: number) => {
+                    return (
+                      <div key={rec.kode_tanaman} className="bg-white p-5 rounded-2xl border border-sage-200 shadow-sm space-y-4">
+                        {/* Title and Trust Tag */}
+                        <div className="flex justify-between items-start gap-4 flex-wrap">
+                          <div>
+                            <span className="text-[10px] font-bold text-sage-400 uppercase tracking-wider block">
+                              Siklus Tanam {index + 1}
+                            </span>
+                            <h4 className="text-base font-extrabold text-sage-900 mt-0.5">
+                              {rec.nama_tanaman} ({rec.kode_tanaman})
+                            </h4>
+                            <span className="text-xs text-sage-500 font-semibold italic">
+                              Famili: {rec.famili_botani}
+                            </span>
+                          </div>
+
+                          <div className="flex gap-1.5 items-center flex-wrap">
+                            {rec.cf_lahan !== null && (
+                              <span className="text-[10px] bg-primary-50 text-primary-700 px-2.5 py-1 rounded-lg font-bold border border-primary-100">
+                                {rec.cf_lahan}% Kecocokan Lahan
+                              </span>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Rest Interval Parameters */}
+                        <div className="pt-1">
+                          <div className="bg-primary-50/40 border border-primary-100 p-3 rounded-xl flex items-center gap-3">
+                            <Calendar className="w-5 h-5 text-primary-600 flex-shrink-0" />
+                            <div>
+                              <span className="text-[10px] text-sage-500 font-bold block leading-none">JEDA ISTIRAHAT LAHAN</span>
+                              <span className="text-sm font-extrabold text-primary-700 block mt-1">{rec.jeda}</span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
             </div>
           ) : (
             // Render Skeleton / Mock data to showcase the design
@@ -327,37 +461,19 @@ export const Mode2Form: React.FC<Mode2FormProps> = ({
                   {/* Title and Trust Tag */}
                   <div className="flex justify-between items-start gap-4">
                     <div>
-                      <span className="text-[10px] font-bold text-sage-400 uppercase tracking-wider block">Rekomendasi Utama</span>
+                      <span className="text-[10px] font-bold text-sage-400 uppercase tracking-wider block">Siklus Tanam 1</span>
                       <h4 className="text-base font-bold text-sage-900 mt-0.5">{rot.nama_tanaman}</h4>
-                      <span className="text-xs text-sage-500 font-semibold">{rot.rekomendasi}</span>
-                    </div>
-                  </div>
-
-                  {/* Agronomic Alasan */}
-                  <div className="bg-sage-50 p-4 rounded-xl border border-sage-100/80">
-                    <div className="flex gap-2">
-                      <Info className="w-4 h-4 text-sage-500 flex-shrink-0 mt-0.5" />
-                      <p className="text-xs text-sage-700 leading-relaxed font-sans">
-                        <strong className="text-sage-800">Alasan Agronomis:</strong> {rot.alasan}
-                      </p>
                     </div>
                   </div>
 
                   {/* Rest Interval Parameters */}
-                  <div className="grid grid-cols-1 sm:grid-cols-12 gap-3 pt-2">
-                    <div className="sm:col-span-4 bg-primary-50/40 border border-primary-100 p-3 rounded-xl flex items-center gap-3">
+                  <div className="pt-2">
+                    <div className="bg-primary-50/40 border border-primary-100 p-3 rounded-xl flex items-center gap-3">
                       <Calendar className="w-5 h-5 text-primary-600" />
                       <div>
                         <span className="text-[10px] text-sage-500 font-medium block leading-none">Jeda Istirahat</span>
                         <span className="text-sm font-extrabold text-primary-700 block mt-1">{rot.jeda}</span>
                       </div>
-                    </div>
-
-                    <div className="sm:col-span-8 bg-sage-50/40 border border-sage-200/60 p-3 rounded-xl">
-                      <span className="text-[10px] text-sage-500 font-bold block">Aktivitas Lahan Disarankan:</span>
-                      <p className="text-xs text-sage-600 mt-1 font-sans line-clamp-2">
-                        {rot.jedaCatatan}
-                      </p>
                     </div>
                   </div>
                 </div>

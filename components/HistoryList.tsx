@@ -8,6 +8,7 @@ export interface HistoryItem {
   title: string;
   timestamp: Date;
   summary: string;
+  resultData?: any;
 }
 
 interface HistoryListProps {
@@ -49,45 +50,42 @@ export const HistoryList: React.FC<HistoryListProps> = ({
               key={item.id}
               onClick={() => onSelect(item)}
               className={cn(
-                "w-full text-left rounded-lg transition-all duration-200 flex items-center gap-3",
-                compact ? "p-2 justify-center" : "p-3 hover:bg-sage-100/50",
+                "w-full text-left rounded-lg transition-all duration-205 flex items-center gap-2",
+                compact ? "p-1.5 justify-center" : "py-1.5 px-2.5 hover:bg-sage-100/40",
                 isActive
-                  ? "bg-sage-100 text-sage-800 font-medium border-l-4 border-primary-500 pl-2"
+                  ? "bg-sage-100 text-sage-800 font-semibold border-l-4 border-primary-500 pl-1.5"
                   : "text-sage-600 hover:text-sage-900"
               )}
-              title={`${item.title} - ${item.summary}`}
+              title={item.title}
             >
               <div
                 className={cn(
-                  "p-1.5 rounded-md flex-shrink-0",
+                  "p-1 rounded-md flex-shrink-0",
                   isLahan
                     ? "bg-primary-100 text-primary-700"
                     : "bg-sage-200 text-sage-700"
                 )}
               >
                 {isLahan ? (
-                  <Sprout className="w-4 h-4" />
+                  <Sprout className="w-3.5 h-3.5" />
                 ) : (
-                  <RefreshCw className="w-4 h-4" />
+                  <RefreshCw className="w-3.5 h-3.5" />
                 )}
               </div>
 
               {!compact && (
                 <div className="flex-1 min-w-0">
-                  <div className="flex justify-between items-start gap-1">
-                    <p className="text-sm font-semibold truncate">
+                  <div className="flex justify-between items-center gap-1">
+                    <p className="text-xs font-semibold truncate leading-none">
                       {item.title}
                     </p>
-                    <span className="text-[10px] text-sage-400 whitespace-nowrap">
+                    <span className="text-[9px] text-sage-400 whitespace-nowrap leading-none">
                       {item.timestamp.toLocaleDateString("id-ID", {
                         month: "short",
                         day: "numeric",
                       })}
                     </span>
                   </div>
-                  <p className="text-xs text-sage-500 truncate mt-0.5">
-                    {item.summary}
-                  </p>
                 </div>
               )}
 
